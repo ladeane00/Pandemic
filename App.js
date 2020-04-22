@@ -6,106 +6,46 @@ import PureChart from 'react-native-pure-chart';
 export default class App extends Component {
 
   // Create States to Store Variables
+
   constructor(props) {
-
     super(props);
-
     this.state = {
-      custLoc: '',
-      custLocTemp: '',
-      latitude: '',
-      longitude: '',
-      latitudeTemp: '',
-      longitudeTemp: '',
+      countries: [],
     };
-    global.custLoc = "";
-    global.lat = "";
-    global.lon = "";
   }
 
   componentDidMount() {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.setState({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          error: null,
-          });
-        },
-
-        (error) => this.setState({ error: error.message, latitude:40.0379, longitude:75.3433 }),
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000, distanceFilter: 10 },
-      );
+    this.getCaseCount();
   }
-
-  getLocation(){
-    this.setState({
-      latitudeTemp:this.state.latitude,
-      longitudeTemp:this.state.longitude,
-    })
-  }
-
- submitLocation() {
-    global.custLoc = this.state.custLocTemp;
-}
 
 //CoronaVirus API Goes here
-getWeather(){
-  const apiKey = "95e80cccc453ba41680034bb84190d39"
-  global.lat = parseInt(this.state.latitude);
-  global.lon = parseInt(this.state.longitude);
-  let url= 'http://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&units=imperial&appid=' + apiKey
-  
-  return fetch(url)
-    .then(response => response.json())
-    .then(responseJSON => {
-    console.log(responseJSON);
-    this.setState({
-        temperature: responseJSON.main.temp,
-        weather:  responseJSON.weather[0].main,
-        isLoading: false,
-        });
-   })
-
-   .catch(error => {console.error(error);
-   });
+getCaseCount(){
+  fetch(`https://coronadatascraper.com/timeseries-byLocation.json`)
+  .then(response => response.json())
+  .then(data => this.setState({ countries: Object.keys(data) }));
 }
+//Mapping Code
+/*{countries.map(country =>
+          <Text key={country.ObjectID}>
+            {country.country} !|! </Text>
+        )} */
 
   render() {
+      const { countries } = this.state;
         return (<Swiper style={styles.wrapper} showsButtons={true}>
 
         <View style = {styles.container}>
-        <Text style={styles.title}> Panedmic </Text>
-        <Text style={styles.otherText}> Location: </Text>
-        <TextInput style={styles.input}
-          placeholder="Custom Location"
-          onChangeText={(value) => this.state.custLocTemp = value}
-        />
-        <Button
-            title = 'Enter'
-            onPress={() => this.submitLocation() }
-        />
-
-        <Text style={styles.otherText}>
-          Location: {global.custLoc}
-        </Text>
+        <Text style={styles.title}> Pandemic </Text>
+        <Text style={styles.yourLocationTitle}> Your Location: </Text>
+        <Text style={styles.locationText}> First Country: {countries[0]}</Text>
         </View>
 
         <View style = {styles.container}>
 
-        
-        <Text style={styles.title}>Graph</Text>
-        
         {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart     */}
-        <PureChart data={[ {x: '2018-01-01', y: 30}, {x: '2018-01-02', y: 200}, {x: '2018-01-03', y: 170}, {x: '2018-01-04', y: 250}, {x: '2018-01-05', y: 10} ]} type='line' />
-        <Button
-            title = 'Get Location'
-            onPress={() => this.getLocation() }
-        />
-        <Text style= {styles.otherText}>Latitude: {this.state.latitudeTemp}</Text>
-        <Text style= {styles.otherText}>Longitude: {this.state.longitudeTemp}</Text>
-        <Text style={styles.otherText}> Location: {global.custLoc}</Text>
-              {this.state.error ? <Text style={styles.error}>Error: {this.state.error} Default Coordinates: Villanova University</Text> : null}
+        <PureChart data={[{x: 1, y: 2}]} type='line' />
+        </View>
+        <View>
         </View>
         </Swiper>
         );
@@ -115,19 +55,27 @@ getWeather(){
       wrapper: {
       },
       title: {
-        color: 'white',
+        color: 'red',
         fontSize: 50,
         textAlign: "center",
         position:"absolute",
-        top:150,
+        top:70,
       },
-      otherText: {
+      yourLocationTitle: {
         color: 'white',
         fontSize: 25,
+        position:"absolute",
+        top:180,
+      },
+      locationText: {
+        color: 'white',
+        fontSize: 25,
+        position:"absolute",
+        top:215,
       },
       container: {
         flex: 1,
-        backgroundColor: '#001F5B',
+        backgroundColor: '#242424',
         alignItems: 'center',
         justifyContent: 'center',
       },

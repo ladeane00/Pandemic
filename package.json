@@ -8,9 +8,15 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "3": "^2.1.0",
+    "-": "0.0.1",
+    "bootstrap": "^4.4.1",
     "expo": "~37.0.3",
     "expo-image-picker": "~8.1.0",
+    "jquery": "^1.9.1",
+    "popper.js": "^1.16.1",
     "react": "~16.9.0",
+    "react-bootstrap": "^1.0.0",
     "react-dom": "~16.9.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-37.0.1.tar.gz",
     "react-native-pure-chart": "0.0.24",
