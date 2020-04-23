@@ -10,7 +10,8 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      countries: [],
+      timeChartTest: [],
+      test: [],
     };
   }
 
@@ -18,34 +19,71 @@ export default class App extends Component {
     this.getCaseCount();
   }
 
+  /*Object.fromEntries(
+    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+  ).coordinates*/
+  //for X
+  /*Object.entries(Object.fromEntries(
+    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+  ).dates)[0][0]*/ 
+  //for Y
+  /*Object.entries(Object.fromEntries(
+    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+  ).dates)[0][1].cases*/
+  //Plain Dates
+  /*Object.entries(Object.fromEntries(
+    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+  ).dates)*/
+
 //CoronaVirus API Goes here
 getCaseCount(){
   fetch(`https://coronadatascraper.com/timeseries-byLocation.json`)
   .then(response => response.json())
-  .then(data => this.setState({ countries: Object.keys(data) }));
+  .then((data) => {
+    let timeData = [];
+    let size = Object.entries(Object.fromEntries(
+      Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+    ).dates).length;
+    for (var i = 0; i < size; i++) {
+      timeData[i] = {x: Object.entries(Object.fromEntries(
+        Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+      ).dates)[i][0], y: Object.entries(Object.fromEntries(
+        Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+      ).dates)[i][1].cases};
+    }
+    this.setState({timeChartTest: timeData})
+  });
 }
 //Mapping Code
-/*{countries.map(country =>
-          <Text key={country.ObjectID}>
-            {country.country} !|! </Text>
-        )} */
+/*var countryOne = Object.values(countries)[0];
+      var countryData = Object.fromEntries(
+        Object.entries(countryOne).map(([key, value]) => [key, value])
+      );*/
 
   render() {
-      const { countries } = this.state;
+      const { timeChartTest } = this.state;
+      console.log(timeChartTest);
         return (<Swiper style={styles.wrapper} showsButtons={true}>
 
         <View style = {styles.container}>
         <Text style={styles.title}> Pandemic </Text>
         <Text style={styles.yourLocationTitle}> Your Location: </Text>
-        <Text style={styles.locationText}> First Country: {countries[0]}</Text>
+        <Text style={styles.locationText}> First Country: Antwerp, Flanders, Belgium</Text>
         </View>
 
         <View style = {styles.container}>
 
         {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart     */}
-        <PureChart data={[{x: 1, y: 2}]} type='line' />
-        </View>
-        <View>
+        <PureChart
+            width={'50%'}
+            height={400}
+            data={timeChartTest}
+            type="line"
+            numberOfYAxisGuideLine={10}
+            backgroundColor="rgba(90,90,90,1)"
+            highlightColor="red"
+            labelColor='black'
+            primaryColor='red'/>
         </View>
         </Swiper>
         );
