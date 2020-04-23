@@ -1,5 +1,3 @@
-//This includes FlatList Beta
-
 
 import React, { Component } from 'react';
 import { Button, Text, View, StyleSheet,TextInput } from 'react-native';
