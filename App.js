@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { Button, Text, View, StyleSheet,TextInput, FlatList } from 'react-native';
+import { Button, Text, View, StyleSheet,TextInput } from 'react-native';
 import Swiper from 'react-native-swiper'; // 1.5.13
 import PureChart from 'react-native-pure-chart';
-import { List, ListItem, SearchBar } from "react-native-elements";
 
 export default class App extends Component {
 
@@ -19,12 +18,6 @@ export default class App extends Component {
       latitudeTemp: '',
       longitudeTemp: '',
       countries: [],
-      loading: false,
-      data: [],
-      page: 1,
-      seed: 1,
-      error: null,
-      refreshing: false,
     };
     global.custLoc = "";
     global.lat = "";
@@ -32,7 +25,6 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    this.makeRemoteRequest();
     this.getCaseCount();
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -47,25 +39,6 @@ export default class App extends Component {
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000, distanceFilter: 10 },
       );
   }
-
-  makeRemoteRequest = () => {
-    const { page, seed } = this.state;
-    const url = `https://randomuser.me/api/?seed=${seed}&page=${page}&results=20`;
-    this.setState({ loading: true });
-    fetch(url)
-      .then(res => res.json())
-      .then(res => {
-        this.setState({
-          data: page === 1 ? res.results : [...this.state.data, ...res.results],
-          error: res.error || null,
-          loading: false,
-          refreshing: false
-        });
-      })
-      .catch(error => {
-        this.setState({ error, loading: false });
-      });
-  };
 
   getLocation(){
     this.setState({
@@ -89,82 +62,6 @@ getCaseCount(){
   .then(data => this.setState({ countries: Object.keys(data) }));
 }
 
-makeRemoteRequest = () => {
-  const { page, seed } = this.state;
-  const url = `https://randomuser.me/api/?seed=${seed}&page=${page}&results=20`;
-  this.setState({ loading: true });
-
-  fetch(url)
-    .then(res => res.json())
-    .then(res => {
-      this.setState({
-        data: page === 1 ? res.results : [...this.state.data, ...res.results],
-        error: res.error || null,
-        loading: false,
-        refreshing: false
-      });
-    })
-    .catch(error => {
-      this.setState({ error, loading: false });
-    });
-};
-
-handleRefresh = () => {
-  this.setState(
-    {
-      page: 1,
-      seed: this.state.seed + 1,
-      refreshing: true
-    },
-    () => {
-      this.makeRemoteRequest();
-    }
-  );
-};
-
-handleLoadMore = () => {
-  this.setState(
-    {
-      page: this.state.page + 1
-    },
-    () => {
-      this.makeRemoteRequest();
-    }
-  );
-};
-
-renderSeparator = () => {
-  return (
-    <View
-      style={{
-        height: 1,
-        width: "86%",
-        backgroundColor: "#CED0CE",
-        marginLeft: "14%"
-      }}
-    />
-  );
-};
-
-renderHeader = () => {
-  return <SearchBar placeholder="Type Here..." lightTheme round />;
-};
-
-renderFooter = () => {
-  if (!this.state.loading) return null;
-
-  return (
-    <View
-      style={{
-        paddingVertical: 20,
-        borderTopWidth: 1,
-        borderColor: "#CED0CE"
-      }}
-    >
-      <ActivityIndicator animating size="large" />
-    </View>
-  );
-};
   render() {
 
         const { countries } = this.state;
@@ -173,28 +70,6 @@ renderFooter = () => {
         <View style = {styles.container}>
         <Text style={styles.title}> Pandemic </Text>
         <Text style={styles.otherText}> Location: </Text>
-        <List containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}>
-        <FlatList
-          data={this.state.data}
-          renderItem={({ item }) => (
-            <ListItem
-              roundAvatar
-              title={`${item.name.first} ${item.name.last}`}
-              subtitle={item.email}
-              avatar={{ uri: item.picture.thumbnail }}
-              containerStyle={{ borderBottomWidth: 0 }}
-            />
-          )}
-          keyExtractor={item => item.email}
-          ItemSeparatorComponent={this.renderSeparator}
-          ListHeaderComponent={this.renderHeader}
-          ListFooterComponent={this.renderFooter}
-          onRefresh={this.handleRefresh}
-          refreshing={this.state.refreshing}
-          onEndReached={this.handleLoadMore}
-          onEndReachedThreshold={50}
-        />
-      </List>
         <Text style={styles.otherText}> <Text style={styles.otherText}> First Country: {countries[0]} </Text></Text>
         <TextInput style={styles.input}
           placeholder="Custom Location"
