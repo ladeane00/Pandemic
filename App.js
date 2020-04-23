@@ -1,3 +1,6 @@
+//This includes FlatList Beta
+
+
 import React, { Component } from 'react';
 import { Button, Text, View, StyleSheet,TextInput, FlatList } from 'react-native';
 import Swiper from 'react-native-swiper'; // 1.5.13
