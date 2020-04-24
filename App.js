@@ -119,7 +119,7 @@ getCaseCount() {
         <View style = {{padding: 30, marginTop: 100, marginBottom: 0}}>
         <PureChart
             style = {{marginLeft: 40}}
-            width={'50%'}
+            width={'40%'}
             height={400}
             gap={25}
             data={timeChartTest}
