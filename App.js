@@ -140,6 +140,7 @@ getCaseCount() {
         Object.entries(Object.values(data)[12]).map(([key, value]) => [key, value])
       ).dates)[i][1].cases};
     }
+    
     this.setState({timeChartTest: timeData})
   });
 }
