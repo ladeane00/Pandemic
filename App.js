@@ -1,10 +1,7 @@
-
 import React, { Component } from 'react';
-import { Button, Text, View, StyleSheet,TextInput } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Button, Text, View, StyleSheet,TextInput } from 'react-native';
 import Swiper from 'react-native-swiper'; // 1.5.13
 import PureChart from 'react-native-pure-chart';
-import { InputAutoSuggest } from 'react-native-autocomplete-search';
-
 
 export default class App extends Component {
 
@@ -21,13 +18,18 @@ export default class App extends Component {
       longitude: '',
       latitudeTemp: '',
       longitudeTemp: '',
+      text: '',
+      data: [],
+      country: 'Loading...',
     };
     global.custLoc = "";
     global.lat = "";
     global.lon = "";
+    this.arrayholder = [];
   }
 
   componentDidMount() {
+    //this.getTestData();
     this.getCaseCount();
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -42,6 +44,56 @@ export default class App extends Component {
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000, distanceFilter: 10 },
       );
   }
+
+  getTestData() {
+    return fetch('https://jsonplaceholder.typicode.com/users')
+      .then((response) => response.json())
+      .then((responseJson) => {
+        // console.log(responseJson);
+        this.setState({
+          isLoading: false,
+          data: responseJson,
+        }, () => {
+          // In this block you can do something with new state.
+          this.arrayholder = responseJson;
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  GetFlatListItem(item) {
+    this.setState({
+      country: this.state.item
+    })
+  }
+
+  searchData(text) {
+    const newData = this.arrayholder.filter(item => {
+      const itemData = item.toUpperCase();
+      const textData = text.toUpperCase();
+      return itemData.indexOf(textData) > -1
+    });
+ 
+    this.setState({
+      data: newData,
+      text: text
+      })
+    }
+
+    itemSeparator = () => {
+      return (
+        <View
+          style={{
+            height: .5,
+            width: "100%",
+            backgroundColor: "#000",
+          }}
+        />
+      );
+    }
+
 
   //for X
   /*Object.entries(Object.fromEntries(
@@ -64,8 +116,6 @@ export default class App extends Component {
     })
   }
 
-  
-
  submitLocation() {
     global.custLoc = this.state.custLocTemp;
 }
@@ -76,65 +126,73 @@ getCaseCount() {
   fetch(`https://coronadatascraper.com/timeseries-byLocation.json`)
   .then(response => response.json())
   .then((data) => {
+    //Countries Keys Array
+    this.setState({data: Object.keys(data)}, () => {
+      this.arrayholder = Object.keys(data);
+    });
     let timeData = [];
+    // Number of Countries
     let size = Object.entries(Object.fromEntries(
-      Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+      Object.entries(Object.values(data)[12]).map(([key, value]) => [key, value])
     ).dates).length;
+    //
     for (var i = 0; i < size; i++) {
       timeData[i] = {x: Object.entries(Object.fromEntries(
-        Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+        Object.entries(Object.values(data)[12]).map(([key, value]) => [key, value])
       ).dates)[i][0], y: Object.entries(Object.fromEntries(
-        Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
+        Object.entries(Object.values(data)[12]).map(([key, value]) => [key, value])
       ).dates)[i][1].cases};
     }
+    
     this.setState({timeChartTest: timeData})
   });
 }
 
-
-
-
-
   render() {
-        const { timeChartTest } = this.state;
-        console.log(timeChartTest);
-        return (<Swiper style={styles.wrapper} showsButtons={true}>
+    const { timeChartTest } = this.state;
+    //console.log(timeChartTest);
+
+    /*if (this.state.isLoading) {
+      return (
+        <View style={{flex: 1, paddingTop: 20}}>
+        <ActivityIndicator />
+      </View>
+      )
+    }*/
+    return (
+
 
         <View style = {styles.container}>
-        <Text style={styles.title}> Pandemic </Text>
-        
-        
-        <InputAutoSuggest
-  style={{ flex: 1 }}
-  staticData={[
-    {someAttribute: 'val1', details: { id: '1', name:'Paris', country:'FR', continent:'Europe'}},
-    {someAttribute: 'val2', details: { id: '2', name: 'Pattanduru', country:'PA', continent:'South America'}},
-    {someAttribute: 'val3', details: { id: '3', name: 'Para', country:'PA', continent: 'South America'}},
-    {someAttribute: 'val4', details: { id: '4', name:'London', country:'UK', continent: 'Europe'}},
-    {someAttribute: 'val5', details: { id: '5', name:'New York', country: 'US', continent: 'North America'}},
-    {someAttribute: 'val6', details: { id: '6', name:'Berlin', country: 'DE', continent: 'Europe'}},
-   ]}
-  itemFormat={{id: 'details.id', name: 'details.name', tags:['details.continent', 'details.country']}}
-/>
+          <Text style={styles.title}> Pandemic </Text>
+          <View style={{ height: 200}}>
+            <TextInput 
+            style={styles.input}
+            onChangeText={(text) => this.searchData(text)}
+            value={this.state.text}
+            underlineColorAndroid='transparent'
+            placeholder="Enter a Location"
+            returnKeyType="go" />
+ 
+            <FlatList
+            data={this.state.data}
+            keyExtractor={ (index) => index }
+            ItemSeparatorComponent={this.itemSeparator}
+            renderItem={({ item }) => <Text style={styles.row}
+            onPress={this.GetFlatListItem.bind(this, item)} >{item}</Text>}
+            style = {{flexGrow: 0}}
+            />
+      
+        </View>
 
-      <Button
-            title = 'Enter'
-            onPress={() => this.submitLocation()}
-        />
-
-        <Text style={styles.otherText}>
-          Location: {global.custLoc}
-        </Text>
-
-        {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart     */}
-        <View style = {{padding: 30, marginTop: 100, marginBottom: 0}}>
+        {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart   */}
+        <View style = {{padding: 30, marginTop: 0}}>
         <PureChart
             style = {{marginLeft: 40}}
             width={'40%'}
-            height={400}
+            height={300}
             gap={25}
             data={timeChartTest}
-            padding={100}
+            padding={0}
             type="line"
             numberOfYAxisGuideLine={10}
             backgroundColor="rgba(90,90,90,1)"
@@ -142,39 +200,45 @@ getCaseCount() {
             labelColor='black'
             primaryColor='red'/>
         </View>
-        <Button
-            title = 'Get Location'
-            onPress={() => this.getLocation() }
-        />
-        <Text style= {styles.otherText}>Latitude: {this.state.latitudeTemp}</Text>
-        <Text style= {styles.otherText}>Longitude: {this.state.longitudeTemp}</Text>
-        <Text style={styles.otherText}> Location: {global.custLoc}</Text>
-              {this.state.error ? <Text style={styles.error}>Error: {this.state.error} Default Coordinates: Villanova University</Text> : null}
+        <Text style={styles.otherText}> {this.state.country} </Text>
+        <Text style={styles.otherText}>  </Text>
+
+
         </View>
-        </Swiper>
         );
       }
     }
     const styles = StyleSheet.create({
+
+      MainContainer: {
+        justifyContent: 'center',
+        flex: 1,
+        margin: 5,
+      },
+      row: {
+        fontSize: 18,
+        padding: 12,
+        backgroundColor: 'white',
+      },
+      textInput: {
+        textAlign: 'center',
+        height: 42,
+        borderWidth: 1,
+        borderColor: '#009688',
+        borderRadius: 8,
+        backgroundColor: "#FFFF"
+      },
       wrapper: {
       },
-      title: {
+      title: { 
         color: 'red',
-        fontSize: 50,
+        fontSize: 35,
         textAlign: "center",
-        position:"absolute",
-        top:70,
+        top:0,
       }, 
-      graphTitle: {
-        color: 'red',
-        fontSize: 50,
-        textAlign: "center",
-        position:"absolute",
-        top:20,
-      },
       otherText: {
         color: 'white',
-        fontSize: 25,
+        fontSize: 20,
       },
       container: {
         flex: 1,
@@ -182,14 +246,13 @@ getCaseCount() {
         alignItems: 'center',
         justifyContent: 'center',
       },
-      author: {
-        position:"absolute",
-        bottom: 5,
-        right: 30,
-        color: "white",
-        fontSize: 15,
-      },
       input: {
+        textAlign: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        height: 27,
+        width: 380,
+        borderRadius: 5,
         borderColor: "black",
         backgroundColor: "white",
         fontSize: 20,
