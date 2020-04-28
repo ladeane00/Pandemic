@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import { Button, Text, View, StyleSheet,TextInput } from 'react-native';
 import Swiper from 'react-native-swiper'; // 1.5.13
 import PureChart from 'react-native-pure-chart';
+import { InputAutoSuggest } from 'react-native-autocomplete-search';
+
 
 export default class App extends Component {
 
@@ -89,18 +91,32 @@ getCaseCount() {
   });
 }
 
-  render() {
 
+
+
+
+  render() {
         const { timeChartTest } = this.state;
         console.log(timeChartTest);
         return (<Swiper style={styles.wrapper} showsButtons={true}>
 
         <View style = {styles.container}>
         <Text style={styles.title}> Pandemic </Text>
-        <TextInput style={styles.input}
-          placeholder="Custom Location"
-          onChangeText={(value) => this.state.custLocTemp = value}
-        />
+        
+        
+        <InputAutoSuggest
+  style={{ flex: 1 }}
+  staticData={[
+    {someAttribute: 'val1', details: { id: '1', name:'Paris', country:'FR', continent:'Europe'}},
+    {someAttribute: 'val2', details: { id: '2', name: 'Pattanduru', country:'PA', continent:'South America'}},
+    {someAttribute: 'val3', details: { id: '3', name: 'Para', country:'PA', continent: 'South America'}},
+    {someAttribute: 'val4', details: { id: '4', name:'London', country:'UK', continent: 'Europe'}},
+    {someAttribute: 'val5', details: { id: '5', name:'New York', country: 'US', continent: 'North America'}},
+    {someAttribute: 'val6', details: { id: '6', name:'Berlin', country: 'DE', continent: 'Europe'}},
+   ]}
+  itemFormat={{id: 'details.id', name: 'details.name', tags:['details.continent', 'details.country']}}
+/>
+
       <Button
             title = 'Enter'
             onPress={() => this.submitLocation()}
@@ -109,12 +125,7 @@ getCaseCount() {
         <Text style={styles.otherText}>
           Location: {global.custLoc}
         </Text>
-        </View>
 
-        <View style = {styles.container}>
-
-        <Text style={styles.graphTitle}>Graph</Text>
-        
         {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart     */}
         <View style = {{padding: 30, marginTop: 100, marginBottom: 0}}>
         <PureChart
