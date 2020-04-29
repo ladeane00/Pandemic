@@ -183,7 +183,7 @@ getData() {
 
 
         <View style = {styles.container}>
-          <Text style={styles.title}> Pandemic </Text>
+          <Text style={styles.title}> COVID-19 </Text>
           <View style={{ height: 200}}>
             <TextInput 
             style={styles.input}
@@ -215,7 +215,7 @@ getData() {
             padding={0}
             type="line"
             numberOfYAxisGuideLine={10}
-            backgroundColor="rgba(90,90,90,1)"
+            backgroundColor="white"
             highlightColor="red"
             labelColor='black'
             primaryColor='red'/>
@@ -257,6 +257,7 @@ getData() {
       title: { 
         color: 'red',
         fontSize: 35,
+        fontFamily: "Copperplate",
         textAlign: "center",
         top:0,
       }, 
