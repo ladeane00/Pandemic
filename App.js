@@ -11,11 +11,14 @@ export default class App extends Component {
         timeChart: [],
         latitude: '',
         longitude: '',
+        coord: [],
         text: '',
         listData: [],
-        loc: 0,
+        loc: "",
+        locIndex: 0,
         locArray: [],
         allData: null,
+        coordArray: [],
      };
         global.lat = "";
         global.lon = "";
@@ -32,14 +35,14 @@ export default class App extends Component {
     for (var i = 0; i < this.state.locArray.length; i++) {
       if (this.state.locArray[i] == item) {
         number = i;
-
       }
     }
-
-    this.setChart(number);
     
+    this.setChart(number);
+
     this.setState({
       loc: item,
+      locIndex: number,
     })
   }
 
@@ -117,6 +120,7 @@ export default class App extends Component {
     this.setState({
       latitude: parseInt(this.state.latitude),
       longitude: parseInt(this.state.longitude),
+      coord: [parseInt(this.state.latitude), parseInt(this.state.longitude)],
     })
   }
 
@@ -141,32 +145,53 @@ getData() {
       coordData[i] = Object.fromEntries(
         Object.entries(Object.values(data)[i]).map(([key, value]) => [key, value])
       ).coordinates;
+      
+      
+
     }
+
+    this.setState({coordArray: coordData});
 
     //List setter
     this.setState({listData: Object.keys(data)}, () => {
       this.arrayholder = Object.keys(data);
     });
-    let timeData = [];
-    // Number of Countries
-    //
-      let dateSize = Object.entries(Object.fromEntries(
-        Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
-        ).dates).length;
-      for (var i = 0; i < dateSize; i++) {
-        timeData[i] = {x: Object.entries(Object.fromEntries(
-          Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
-        ).dates)[i][0], y: Object.entries(Object.fromEntries(
-          Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
-        ).dates)[i][1].cases};
-      }
-    
-    this.setState({coorArray: coordData});
 
-    this.setState({timeChart: timeData})
+    //loc stuff
+
+    /*for (var i = 0; i < locSize; i++) {
+      var coordinate = coordData[i];
+      var long = coordinate[0];
+      var lat = coordinate[1];
+
+      var currLowLongDif = 10000.0;
+      var currLowLatDif = 10000.0;
+
+      var longDiff= Math.abs(long-this.state.coord[0]);
+      var latDiff= Math.abs(lat-this.state.coord[1]);
+      if(longDiff < currLowLongDif && latDiff < currLowLatDif){
+        currLowLongDif = longDiff;
+        currLowLatDif = latDiff;
+        this.state.locIndex = i;
+      }
+    }*/
+
+
+    //compare all coordinates in coordArray with coord
+    //set locIndex to the one with the closet coordinates
+
+    /*def closest (num, arr):
+    curr = arr[0]
+    foreach val in arr:
+        if abs (num - val) < abs (num - curr):
+            curr = val
+    return curr*/
+    
+    this.setChart(this.state.locIndex);
   });
 
 }
+
 
   render() {
     const { timeChart } = this.state;
@@ -180,7 +205,6 @@ getData() {
       )
     }*/
     return (
-
 
         <View style = {styles.container}>
           <Text style={styles.title}> Pandemic </Text>
@@ -198,7 +222,8 @@ getData() {
             keyExtractor={ (index) => index }
             ItemSeparatorComponent={this.itemSeparator}
             renderItem={({ item }) => <Text style={styles.row}
-            onPress={this.GetFlatListItem.bind(this, item)} >{item}</Text>}
+            onPress= {this.GetFlatListItem.bind(this, item)} >{item}</Text>}
+            value = {this.state.item}
             style = {{flexGrow: 0}}
             />
       
