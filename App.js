@@ -1,3 +1,12 @@
+/*  App.js
+
+React Native program that uses https://coronadatascraper.com/timeseries-byLocation.json
+to show data on a time series graph. This applications allows for user input.#000
+@Lucas Deane, @Eli Jaghab, @Will Sabia, @Alex Alano
+
+*/ 
+
+import Swiper from 'react-native-swiper'; 
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, FlatList, Button, Text, View, StyleSheet,TextInput } from 'react-native';
 import PureChart from 'react-native-pure-chart';
@@ -8,73 +17,86 @@ export default class App extends Component {
   constructor(props) {
     super(props);
       this.state = {
-        timeChart: [],
-        latitude: '',
-        longitude: '',
-        coord: [],
+        timeChart: [], 
         text: '',
         listData: [],
-        loc: "",
-        locIndex: 0,
-        locArray: [],
         allData: null,
         coordArray: [],
+        locIndex: 3426, // Initialize with United States
      };
-        global.lat = "";
-        global.lon = "";
-        this.arrayholder = [];
+    this.arrayholder = [];
   }
 
   componentDidMount() {
     this.getData();
-    this.getLocation();
   }
+  
+  //Populate timeChart with Data from API for Graph
+  setChart(num) {
+    let timeData = [];
+    
+    // Identify Number of Dates for Specified Location
+    let dateSize = Object.entries(Object.fromEntries(
+      Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
+      ).dates).length;
+    
+    
+    for (var i = 0; i < dateSize; i++) {
+      // Determine Dates for Specified Location - X-Axis
+      var xValue = (Object.entries(Object.fromEntries(
+        Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
+    ).dates)[i][0]).slice(6);
+      
+      // Determine Case Count for Specified Location - Y-Axis
+      var yValue = (Object.entries(Object.fromEntries(
+        Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
+      ).dates)[i][1].cases);
+      
+      // Checks if Case Count is Null
+      if (yValue == null) {
+        yValue = 0;
+      }
+      // Temporary Array
+      timeData[i] = {x: xValue, y: yValue};
+    }
+    // Sets Data for Graph
+    this.setState({timeChart: timeData});
 
+    // Sets Graph Label
+    this.setState({loc: this.state.locArray[num]})
+  }
+  
+  // FlatList Functions
   GetFlatListItem(item) {
     let number = 0;
+
+    // Sorts Through Locations Array to Identify Index of Location Selected
     for (var i = 0; i < this.state.locArray.length; i++) {
       if (this.state.locArray[i] == item) {
         number = i;
       }
     }
-    
+
+    // Pass Location Index to Graph 
     this.setChart(number);
 
     this.setState({
-      loc: item,
-      locIndex: number,
+      loc: item, // Sets Location Object to the String
+      locIndex: number, // Sets Variable to Index of Location
     })
   }
 
-  setChart(num) {
-    let timeData = [];
-
-      let dateSize = Object.entries(Object.fromEntries(
-        Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
-        ).dates).length;
-
-      for (var i = 0; i < dateSize; i++) {
-        timeData[i] = {x: Object.entries(Object.fromEntries(
-          Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
-        ).dates)[i][0], y: Object.entries(Object.fromEntries(
-          Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
-        ).dates)[i][1].cases};
-      }
-      this.setState({timeChart: timeData});
-  }
-
-
-  // FlatList Functions
+  // Populate FlatList with Locations
   searchData(text) {
     const newData = this.arrayholder.filter(item => {
       const itemData = item.toUpperCase();
       const textData = text.toUpperCase();
       return itemData.indexOf(textData) > -1
     });
- 
+
     this.setState({
-      listData: newData,
-      text: text
+      listData: newData, // Sets Array of Locations Based on Search
+      text: text // User Input from Search
       })
     }
 
@@ -90,153 +112,31 @@ export default class App extends Component {
       );
     }
 
-
-  //for X
-  /*Object.entries(Object.fromEntries(
-    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
-  ).dates)[0][0]*/ 
-  //for Y
-  /*Object.entries(Object.fromEntries(
-    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
-  ).dates)[0][1].cases*/
-  //Plain Dates
-  /*Object.entries(Object.fromEntries(
-    Object.entries(Object.values(data)[0]).map(([key, value]) => [key, value])
-  ).dates)*/
-
-//User Location 
-  getLocation() {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.setState({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          error: null,
-          });
-        },
-        (error) => this.setState({ error: error.message, latitude:40.0379, longitude:75.3433 }),
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000, distanceFilter: 10 },
-      );
-    this.setState({
-      latitude: parseInt(this.state.latitude),
-      longitude: parseInt(this.state.longitude),
-      coord: [parseInt(this.state.latitude), parseInt(this.state.longitude)],
-    })
-  }
-
- submitLocation() {
-    global.custLoc = this.state.custLocTemp;
-}
-
+// Get Data from API 
 getData() {
   fetch(`https://coronadatascraper.com/timeseries-byLocation.json`)
   .then(response => response.json())
   .then((data) => {
-    //sets a data variable with everything
-    this.setState({allData: data});
-
-    //Location Keys Array
-    this.setState({locArray: Object.keys(data)});
-
-    let locSize = Object.keys(data).length;
-
-    let coordData = [];
-    for (var i = 0; i < locSize; i++) {
-      coordData[i] = Object.fromEntries(
-        Object.entries(Object.values(data)[i]).map(([key, value]) => [key, value])
-      ).coordinates;
-      
-      
-
-    }
-
-    this.setState({coordArray: coordData});
-
-    //List setter
+    this.setState({allData: data}); // Sets JSON to Variable
+    this.setState({locArray: Object.keys(data)}); // Sets JSON Locations to locArray
     this.setState({listData: Object.keys(data)}, () => {
-      this.arrayholder = Object.keys(data);
+      this.arrayholder = Object.keys(data); // Temporary Storage for listData
     });
-
-    //loc stuff
-
-    /*for (var i = 0; i < locSize; i++) {
-      var coordinate = coordData[i];
-      var long = coordinate[0];
-      var lat = coordinate[1];
-
-      var currLowLongDif = 10000.0;
-      var currLowLatDif = 10000.0;
-
-      var longDiff= Math.abs(long-this.state.coord[0]);
-      var latDiff= Math.abs(lat-this.state.coord[1]);
-      if(longDiff < currLowLongDif && latDiff < currLowLatDif){
-        currLowLongDif = longDiff;
-        currLowLatDif = latDiff;
-        this.state.locIndex = i;
-      }
-    }*/
-
-
-    //compare all coordinates in coordArray with coord
-    //set locIndex to the one with the closet coordinates
-
-    /*def closest (num, arr):
-    curr = arr[0]
-    foreach val in arr:
-        if abs (num - val) < abs (num - curr):
-            curr = val
-    return curr*/
     
-    this.setChart(this.state.locIndex);
+    this.setChart(this.state.locIndex); // Sets Default US
   });
-
 }
 
-
-  render() {
-    const { timeChart } = this.state;
-    //console.log(timeChart);
-
-    /*if (this.state.isLoading) {
-      return (
-        <View style={{flex: 1, paddingTop: 20}}>
-        <ActivityIndicator />
-      </View>
-      )
-    }*/
-    return (
-
-        <View style = {styles.container}>
-          <Text style={styles.title}> COVID-19 </Text>
-          <View style={{ height: 200}}>
-            <TextInput 
-            style={styles.input}
-            onChangeText={(text) => this.searchData(text)}
-            value={this.state.text}
-            underlineColorAndroid='transparent'
-            placeholder="Enter a Location"
-            returnKeyType="go" />
- 
-            <FlatList
-            data={this.state.listData}
-            keyExtractor={ (index) => index }
-            ItemSeparatorComponent={this.itemSeparator}
-            renderItem={({ item }) => <Text style={styles.row}
-            onPress= {this.GetFlatListItem.bind(this, item)} >{item}</Text>}
-            value = {this.state.item}
-            style = {{flexGrow: 0}}
-            />
-      
-        </View>
-
-        {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart   */}
-        <View style = {{padding: 30, marginTop: 0}}>
-        <PureChart
-            style = {{marginLeft: 40}}
-            width={'40%'}
+render() {
+  return (
+  <Swiper style={styles.wrapper} showsButtons={true}>
+      <View style = {styles.container}>
+        <Text style={styles.title}>Pandemic</Text>
+        <View style = {{padding: 30}}>
+          <PureChart
             height={300}
-            gap={25}
-            data={timeChart}
+            gap={12}
+            data={this.state.timeChart}
             padding={0}
             type="line"
             numberOfYAxisGuideLine={10}
@@ -246,19 +146,33 @@ getData() {
             primaryColor='red'/>
         </View>
         <Text style={styles.otherText}> {this.state.loc} </Text>
-        <Text style={styles.otherText}>  </Text>
-        <Button
-            title = 'Use Current Location'
-            onPress={() => this.submitLocation()}
-        />
+      </View>
 
-
+      <View style = {styles.container}>
+        <Text style={styles.locTitle}>Select Location</Text>
+        <View style={{height: 600, padding: 30}}>
+          <TextInput 
+            style={styles.input}
+            onChangeText={(text) => this.searchData(text)}
+            value={this.state.text}
+            underlineColorAndroid='transparent'
+            placeholder="Enter a Location"
+            returnKeyType="go" />
+          <FlatList
+            data={this.state.listData}
+            keyExtractor={ (index) => index }
+            ItemSeparatorComponent={this.itemSeparator}
+            renderItem={({ item }) => <Text style={styles.row}
+            onPress= {this.GetFlatListItem.bind(this, item)} >{item}</Text>}
+            value = {this.state.item}
+            style = {{flexGrow: 0}}/>
         </View>
-        );
-      }
-    }
+      </View>
+    </Swiper>
+  );
+}
+}
     const styles = StyleSheet.create({
-
       MainContainer: {
         justifyContent: 'center',
         flex: 1,
@@ -282,10 +196,17 @@ getData() {
       title: { 
         color: 'red',
         fontSize: 35,
-        fontFamily: "Copperplate",
+        fontFamily: "Arial",
         textAlign: "center",
         top:0,
-      }, 
+      },
+      locTitle: { 
+        color: 'white',
+        fontSize: 35,
+        fontFamily: "Arial",
+        textAlign: "center",
+        marginTop: 30,
+      },  
       otherText: {
         color: 'white',
         fontSize: 20,
