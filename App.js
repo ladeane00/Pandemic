@@ -6,7 +6,6 @@ to show data on a time series graph. This applications allows for user input.#00
 
 */ 
 
-import Swiper from 'react-native-swiper'; 
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, FlatList, Button, Text, View, StyleSheet,TextInput } from 'react-native';
 import PureChart from 'react-native-pure-chart';
@@ -20,9 +19,13 @@ export default class App extends Component {
         timeChart: [], 
         text: '',
         listData: [],
+        loc: '',
+        locArray: [],
+        locTitle: '',
         allData: null,
         coordArray: [],
         locIndex: 3426, // Initialize with United States
+        currentCaseCount: 0,
      };
     this.arrayholder = [];
   }
@@ -39,6 +42,10 @@ export default class App extends Component {
     let dateSize = Object.entries(Object.fromEntries(
       Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
       ).dates).length;
+
+    this.setState({currentCaseCount: Object.entries(Object.fromEntries(
+      Object.entries(Object.values(this.state.allData)[num]).map(([key, value]) => [key, value])
+    ).dates)[dateSize - 1][1].cases});
     
     
     for (var i = 0; i < dateSize; i++) {
@@ -118,57 +125,62 @@ getData() {
   .then(response => response.json())
   .then((data) => {
     this.setState({allData: data}); // Sets JSON to Variable
-    this.setState({locArray: Object.keys(data)}); // Sets JSON Locations to locArray
-    this.setState({listData: Object.keys(data)}, () => {
-      this.arrayholder = Object.keys(data); // Temporary Storage for listData
-    });
+    this.setState({locArray: data.map(({ name }) => name)}); // Sets JSON Locations to locArray
+    this.arrayholder = this.state.locArray;
+
+        //List setter
+        this.setState({listData: data.map(({ name }) => name)});
     
     this.setChart(this.state.locIndex); // Sets Default US
   });
 }
 
+
 render() {
   return (
-  <Swiper style={styles.wrapper} showsButtons={true}>
-      <View style = {styles.container}>
-        <Text style={styles.title}>Pandemic</Text>
-        <View style = {{padding: 30}}>
-          <PureChart
-            height={300}
-            gap={12}
-            data={this.state.timeChart}
-            padding={0}
-            type="line"
-            numberOfYAxisGuideLine={10}
-            backgroundColor="white"
-            highlightColor="red"
-            labelColor='black'
-            primaryColor='red'/>
-        </View>
-        <Text style={styles.otherText}> {this.state.loc} </Text>
-      </View>
+    <View style = {styles.container}>
+    <Text style={styles.title}> Pandemic </Text>
+    <View style={{ height: 150}}>
+      <TextInput 
+      style={styles.input}
+      onChangeText={(text) => this.searchData(text)}
+      value={this.state.text}
+      underlineColorAndroid='transparent'
+      placeholder="Enter a Location"
+      returnKeyType="go" />
 
-      <View style = {styles.container}>
-        <Text style={styles.locTitle}>Select Location</Text>
-        <View style={{height: 600, padding: 30}}>
-          <TextInput 
-            style={styles.input}
-            onChangeText={(text) => this.searchData(text)}
-            value={this.state.text}
-            underlineColorAndroid='transparent'
-            placeholder="Enter a Location"
-            returnKeyType="go" />
-          <FlatList
-            data={this.state.listData}
-            keyExtractor={ (index) => index }
-            ItemSeparatorComponent={this.itemSeparator}
-            renderItem={({ item }) => <Text style={styles.row}
-            onPress= {this.GetFlatListItem.bind(this, item)} >{item}</Text>}
-            value = {this.state.item}
-            style = {{flexGrow: 0}}/>
-        </View>
-      </View>
-    </Swiper>
+      <FlatList
+      data={this.state.listData}
+      keyExtractor={ (index) => index }
+      ItemSeparatorComponent={this.itemSeparator}
+      renderItem={({ item }) => <Text style={styles.row}
+      onPress= {this.GetFlatListItem.bind(this, item)} >{item}</Text>}
+      value = {this.state.item}
+      style = {{flexGrow: 0}}
+      />
+
+  </View>
+  {/*Documentation for Graph:  https://github.com/oksktank/react-native-pure-chart   */}
+  <View style = {{padding: 30, marginTop: 0}}>
+  <PureChart
+      style = {{marginLeft: 40}}
+      width={1}
+      height={300}
+      gap={12}
+      data={this.state.timeChart}
+      padding={0}
+      type="line"
+      numberOfYAxisGuideLine={10}
+      backgroundColor="rgba(90,90,90,1)"
+      backgroundColor="lightgray"
+      highlightColor="red"
+      labelColor='black'
+      primaryColor='red'/>
+  </View>
+  <Text style={styles.otherText}> {this.state.loc} </Text>
+  <Text style={styles.otherText}> Total Cases: {this.state.currentCaseCount} </Text>
+  </View>
+
   );
 }
 }
